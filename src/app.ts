@@ -3,6 +3,7 @@ import cors from 'cors';
 import { corsOptions } from './constants.js';
 import { sendSuccess } from './utils/constants/response.js';
 import authRoutes from "./modules/auth/auth.route.js"
+import userRoutes from "./modules/users/user.route.js"
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 
 
@@ -23,6 +24,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 
 
 
