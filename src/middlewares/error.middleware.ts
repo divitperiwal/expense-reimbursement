@@ -11,7 +11,7 @@ export const errorHandler = (error: Error, req: Request, res: Response, next: Ne
 
     return sendError(
         res,
-        500,
+        (error as any).statusCode || 500,
         error.message || 'Internal Server Error',
         process.env.NODE_ENV === 'development' ? error.stack : undefined,
     );
