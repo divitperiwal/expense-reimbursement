@@ -1,4 +1,4 @@
-import type { ErrorResponse, SuccessResponse } from "../../types/common.js";
+import type { ErrorResponse, SuccessResponse } from "@/types/common.js";
 import type { Response } from 'express';
 
 export const sendSuccess = (res: Response, statusCode = 200, message = 'Success', data?: any) => {
