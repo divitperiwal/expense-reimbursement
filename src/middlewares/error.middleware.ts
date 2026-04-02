@@ -1,4 +1,4 @@
-import { sendError } from '@/utils/helper/response.js';
+import { sendError } from '@/utils/constants/response.js';
 import type { NextFunction, Request, Response } from 'express';
 
 export const errorHandler = (error: Error, req: Request, res: Response, next: NextFunction) => {
