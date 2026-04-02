@@ -3,10 +3,14 @@ import { UserService } from "./user.service.js";
 import { sendSuccess } from "@/utils/constants/response.js";
 import { getUserSchema, updateUserSchema } from "@/types/validation/user.validation.js";
 
+export const handleGetSelf = async (req: Request, res: Response) => {
+    const requester = req.user;
+    const user = await UserService.getUser(requester.id);
+    sendSuccess(res, 200, 'User retrieved successfully', user);
+}
 export const handleGetUser = async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const requester = req.user;
-    const user = await UserService.getUser(requester, id);
+    const user = await UserService.getUser(id);
     sendSuccess(res, 200, 'User retrieved successfully', user);
 }
 

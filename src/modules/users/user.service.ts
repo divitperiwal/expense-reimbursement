@@ -3,8 +3,8 @@ import { ApiError } from "@/utils/constants/api-error.js";
 import { UserDatabase } from "./user.database.js";
 
 export const UserService = {
-    getUser: async (requester: User, userId: string) => {
-        if (requester.role !== 'admin' && requester.id !== userId) throw new ApiError('Forbidden', 403);
+    getUser: async (userId: string) => {
+        // if (requester.role !== 'admin' && requester.id !== userId) throw new ApiError('Forbidden', 403);
         const user = await UserDatabase.getUserById(userId);
         if (!user) throw new ApiError('User not found', 404);
         return user;
