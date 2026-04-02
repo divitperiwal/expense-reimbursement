@@ -1,3 +1,4 @@
+import type { User } from '@/types/common.js';
 import jwt from 'jsonwebtoken';
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
@@ -14,6 +15,6 @@ export const signAccessToken = (payload: object): string => {
     })
 }
 
-export const verifyAccessToken = (token: string): object => {
-    return jwt.verify(token, ACCESS_TOKEN_SECRET) as object;
+export const verifyAccessToken = (token: string): User => {
+    return jwt.verify(token, ACCESS_TOKEN_SECRET) as User;
 }

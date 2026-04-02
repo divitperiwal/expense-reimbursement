@@ -19,3 +19,11 @@ export interface ApiErrorResponse {
     code: number;
     details?: any;
 }
+
+export type User = {
+    id: string;
+    name: string;
+    role: Role;
+}
+
+export type Role = 'employee' | 'manager' | 'finance' | 'admin';

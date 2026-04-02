@@ -18,7 +18,7 @@ export const AuthService = {
         if (!user) throw new ApiError("Failed to create user", 500);
 
         //Generate JWT
-        const userObj = { id: user.id, name: user.name };
+        const userObj = { id: user.id, name: user.name, role: user.role };
         const accessToken = signAccessToken(userObj);
 
         return { userId: user.id, accessToken };
@@ -34,7 +34,7 @@ export const AuthService = {
         const isPasswordValid = comparePassword(password, user.password);
         if (!isPasswordValid) throw new ApiError("Invalid password", 401);
 
-        const userObj = { id: user.id, name: user.name };
+        const userObj = { id: user.id, name: user.name, role: user.role };
         //Create JWT token and return it to the user
         const accessToken = signAccessToken(userObj);
 
@@ -42,6 +42,6 @@ export const AuthService = {
 
     },
     logout: async (jwt: string) => {
-        
+
     }
 }

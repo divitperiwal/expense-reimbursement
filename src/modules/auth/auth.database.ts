@@ -8,7 +8,8 @@ export const AuthDatabase = {
             id: users.id,
             name: users.name,
             email: users.email,
-            password: users.password
+            password: users.password,
+            role: users.role
         }).from(users).where(eq(users.email, email));
         return user;
     },
@@ -34,8 +35,6 @@ export const AuthDatabase = {
             name: users.name,
             email: users.email,
             role: users.role,
-            status: users.status,
-            createdAt: users.createdAt
         })
 
         return user;
