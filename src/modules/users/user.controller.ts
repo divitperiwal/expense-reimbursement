@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { UserService } from "./user.service.js";
 import { sendSuccess } from "@/utils/constants/response.js";
-import { getUserSchema, updateUserSchema } from "@/types/validation/user.validation.js";
+import { getUserSchema, updateRoleSchema, updateStatusSchema } from "@/types/validation/user.validation.js";
 
 export const handleGetSelf = async (req: Request, res: Response) => {
     const requester = req.user;
@@ -20,14 +20,14 @@ export const handleGetAllUsers = async (req: Request, res: Response) => {
     sendSuccess(res, 200, 'Users retrieved successfully', users);
 }
 export const handleUpdateRole = async (req: Request, res: Response) => {
-    const { role } = updateUserSchema.parse(req.body);
+    const { role } = updateRoleSchema.parse(req.body);
     const id = req.params.id as string;
     await UserService.updateUserRole(id, role);
     sendSuccess(res, 200, 'User role updated successfully');
 
 }
 export const handleUpdateStatus = async (req: Request, res: Response) => {
-    const { status } = updateUserSchema.parse(req.body);
+    const { status } = updateStatusSchema.parse(req.body);
     const id = req.params.id as string;
 
     await UserService.updateUserStatus(id, status);
