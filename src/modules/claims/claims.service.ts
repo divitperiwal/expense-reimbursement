@@ -3,16 +3,19 @@ import { ClaimsDatabase } from "./claims.database.js";
 import { ApiError } from "@/utils/constants/api-error.js";
 import { expenseClaims } from "@/database/schema/expense-claims.schema.js";
 import { roleVisibleStatuses, type Role} from "@/types/common.js";
+import { deleteClaimImageFromCloudinary, uploadClaimImageToCloudinary } from "../../lib/cloudinary-upload.js";
 
 export const ClaimsService = {
-    createClaim: async (userId: string, amount: number, category: string, date: Date) => {
+    createClaim: async (userId: string, amount: number, category: string, date: Date, billFile?: Express.Multer.File) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!amount || amount <= 0) throw new ApiError('Amount must be greater than 0', 400);
         if (!category) throw new ApiError('Category is required', 400);
         if (!date) throw new ApiError('Date is required', 400);
         if (date >= new Date()) throw new ApiError('Date cannot be in future', 400);
 
-        const claimId = await ClaimsDatabase.createClaim(userId, amount, category, date);
+        const billUrl = billFile ? await uploadClaimImageToCloudinary(billFile, userId) : undefined;
+
+        const claimId = await ClaimsDatabase.createClaim(userId, amount, category, date, billUrl);
         if (!claimId) throw new ApiError('Failed to create claim', 500);
         await ClaimsDatabase.createClaimAction(claimId.id, userId, 'created');
         return claimId;
@@ -63,14 +66,17 @@ export const ClaimsService = {
 
         return claim;
     },
-    updateClaim: async (userId: string, claimId: string, amount?: number, category?: string, date?: Date) => {
+    updateClaim: async (userId: string, claimId: string, amount?: number, category?: string, date?: Date, billFile?: Express.Multer.File) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
-        if (amount === undefined && category === undefined && date === undefined) {
+        if (amount === undefined && category === undefined && date === undefined && !billFile) {
             throw new ApiError('At least one field is required to update a claim', 400);
         }
         if (amount !== undefined && amount <= 0) throw new ApiError('Amount must be greater than 0', 400);
         if (date !== undefined && date >= new Date()) throw new ApiError('Date cannot be in future', 400);
+
+        const existingClaim = await ClaimsDatabase.getClaimDetailsById(claimId);
+        if (!existingClaim || existingClaim.employeeId !== userId) throw new ApiError('Claim not found', 404);
 
         const updateData: Partial<typeof expenseClaims.$inferInsert> = {};
 
@@ -86,10 +92,21 @@ export const ClaimsService = {
             updateData.date = date.toISOString().slice(0, 10);
         }
 
+        let oldBillUrl = existingClaim.billUrl ?? undefined;
+        if (billFile) {
+            const newBillUrl = await uploadClaimImageToCloudinary(billFile, userId);
+            updateData.billUrl = newBillUrl;
+        }
+
         updateData.updatedAt = new Date();
 
         const updatedClaim = await ClaimsDatabase.updateClaim(userId, claimId, updateData);
         if (!updatedClaim) throw new ApiError('Claim not found', 404);
+
+        if (billFile && oldBillUrl) {
+            await deleteClaimImageFromCloudinary(oldBillUrl);
+        }
+
         await ClaimsDatabase.createClaimAction(claimId, userId, 'edited');
         return updatedClaim;
     },
@@ -171,12 +188,15 @@ export const ClaimsService = {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
 
-        const claim = await ClaimsDatabase.getClaimByIdForEmployee(userId, claimId);
-        if (!claim) throw new ApiError('Claim not found', 404);
+        const claim = await ClaimsDatabase.getClaimDetailsById(claimId);
+        if (!claim || claim.employeeId !== userId) throw new ApiError('Claim not found', 404);
 
         if (claim.status === 'draft') {
             const deletedClaim = await ClaimsDatabase.hardDeleteClaim(userId, claimId);
             if (!deletedClaim) throw new ApiError('Claim not found', 404);
+            if (claim.billUrl) {
+                await deleteClaimImageFromCloudinary(claim.billUrl);
+            }
             return deletedClaim;
         }
 

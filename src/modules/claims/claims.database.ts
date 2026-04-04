@@ -49,12 +49,13 @@ export const ClaimsDatabase = {
         ]);
         return { claims, total };
     },
-    createClaim: async (userId: string, amount: number, category: string, date: Date) => {
+    createClaim: async (userId: string, amount: number, category: string, date: Date, billUrl?: string) => {
         const [claimId] = await db.insert(expenseClaims).values({
             amount: amount.toString(),
             employeeId: userId,
             category,
             date: date.toISOString().slice(0, 10),
+            billUrl,
             status: 'draft'
         }).returning({ id: expenseClaims.id });
 

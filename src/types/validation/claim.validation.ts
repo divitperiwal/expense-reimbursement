@@ -1,13 +1,13 @@
 import z from "zod";
 
 export const createClaimSchema = z.object({
-    amount: z.number().positive().min(1),
+    amount: z.coerce.number().positive().min(1),
     category: z.string(),
     date: z.coerce.date()
 })
 
 export const updateClaimSchema = z.object({
-    amount: z.number().positive().min(1).optional(),
+    amount: z.coerce.number().positive().min(1).optional(),
     category: z.string().optional(),
     date: z.coerce.date().optional()
 })

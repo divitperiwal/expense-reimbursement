@@ -16,13 +16,13 @@ export const handleGetClaim = async (req: Request, res: Response) => {
 }
 export const handleCreateClaim = async (req: Request, res: Response) => {
     const { amount, category, date } = createClaimSchema.parse(req.body);
-    const claimId = await ClaimsService.createClaim(req.user.id, amount, category, date);
+    const claimId = await ClaimsService.createClaim(req.user.id, amount, category, date, req.file);
     sendSuccess(res, 201, "Claim created successfully", claimId);
 }
 export const handleUpdateClaim = async (req: Request, res: Response) => {
     const { amount, category, date } = updateClaimSchema.parse(req.body);
     const claimId = req.params.id as string;
-    const updatedClaim = await ClaimsService.updateClaim(req.user.id, claimId, amount, category, date);
+    const updatedClaim = await ClaimsService.updateClaim(req.user.id, claimId, amount, category, date, req.file);
     sendSuccess(res, 200, "Claim updated successfully", updatedClaim);
 
 }
