@@ -49,12 +49,13 @@ export const ClaimsDatabase = {
         ]);
         return { claims, total };
     },
-    createClaim: async (userId: string, amount: number, category: string, date: Date, billUrl?: string) => {
+    createClaim: async (userId: string, amount: number, category: string, date: Date, notes?: string, billUrl?: string) => {
         const [claimId] = await db.insert(expenseClaims).values({
             amount: amount.toString(),
             employeeId: userId,
             category,
             date: date.toISOString().slice(0, 10),
+            notes,
             billUrl,
             status: 'draft'
         }).returning({ id: expenseClaims.id });
@@ -69,9 +70,13 @@ export const ClaimsDatabase = {
 
         return updatedClaim ?? null;
     },
-    submitClaim: async (userId: string, claimId: string) => {
+    submitClaim: async (userId: string, claimId: string, notes?: string) => {
         const [submittedClaim] = await db.update(expenseClaims)
-            .set({ status: 'submitted', updatedAt: new Date() })
+            .set({
+                status: 'submitted',
+                updatedAt: new Date(),
+                ...(notes !== undefined ? { notes } : {})
+            })
             .where(and(eq(expenseClaims.id, claimId), eq(expenseClaims.employeeId, userId), isNull(expenseClaims.deletedAt)))
             .returning({ id: expenseClaims.id });
 
@@ -113,9 +118,9 @@ export const ClaimsDatabase = {
 
         return disbursedClaim ?? null;
     },
-    rejectClaim: async (claimId: string, currentStatus: 'submitted' | 'approved', notes: string) => {
+    rejectClaim: async (claimId: string, currentStatus: 'submitted' | 'approved') => {
         const [rejectedClaim] = await db.update(expenseClaims)
-            .set({ status: 'rejected', notes, updatedAt: new Date() })
+            .set({ status: 'rejected', updatedAt: new Date() })
             .where(and(eq(expenseClaims.id, claimId), eq(expenseClaims.status, currentStatus), isNull(expenseClaims.deletedAt)))
             .returning({ id: expenseClaims.id });
 

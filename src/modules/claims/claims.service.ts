@@ -6,7 +6,7 @@ import { roleVisibleStatuses, type Role} from "@/types/common.js";
 import { deleteClaimImageFromCloudinary, uploadClaimImageToCloudinary } from "../../lib/cloudinary-upload.js";
 
 export const ClaimsService = {
-    createClaim: async (userId: string, amount: number, category: string, date: Date, billFile?: Express.Multer.File) => {
+    createClaim: async (userId: string, amount: number, category: string, date: Date, notes?: string, billFile?: Express.Multer.File) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!amount || amount <= 0) throw new ApiError('Amount must be greater than 0', 400);
         if (!category) throw new ApiError('Category is required', 400);
@@ -15,7 +15,7 @@ export const ClaimsService = {
 
         const billUrl = billFile ? await uploadClaimImageToCloudinary(billFile, userId) : undefined;
 
-        const claimId = await ClaimsDatabase.createClaim(userId, amount, category, date, billUrl);
+        const claimId = await ClaimsDatabase.createClaim(userId, amount, category, date, notes, billUrl);
         if (!claimId) throw new ApiError('Failed to create claim', 500);
         await ClaimsDatabase.createClaimAction(claimId.id, userId, 'created');
         return claimId;
@@ -66,10 +66,10 @@ export const ClaimsService = {
 
         return claim;
     },
-    updateClaim: async (userId: string, claimId: string, amount?: number, category?: string, date?: Date, billFile?: Express.Multer.File) => {
+    updateClaim: async (userId: string, claimId: string, amount?: number, category?: string, date?: Date, notes?: string, billFile?: Express.Multer.File) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
-        if (amount === undefined && category === undefined && date === undefined && !billFile) {
+        if (amount === undefined && category === undefined && date === undefined && notes === undefined && !billFile) {
             throw new ApiError('At least one field is required to update a claim', 400);
         }
         if (amount !== undefined && amount <= 0) throw new ApiError('Amount must be greater than 0', 400);
@@ -92,6 +92,10 @@ export const ClaimsService = {
             updateData.date = date.toISOString().slice(0, 10);
         }
 
+        if (notes !== undefined) {
+            updateData.notes = notes;
+        }
+
         let oldBillUrl = existingClaim.billUrl ?? undefined;
         if (billFile) {
             const newBillUrl = await uploadClaimImageToCloudinary(billFile, userId);
@@ -110,7 +114,7 @@ export const ClaimsService = {
         await ClaimsDatabase.createClaimAction(claimId, userId, 'edited');
         return updatedClaim;
     },
-    submitClaim: async (userId: string, claimId: string) => {
+    submitClaim: async (userId: string, claimId: string, notes?: string) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
 
@@ -118,7 +122,7 @@ export const ClaimsService = {
         if (!claim) throw new ApiError('Claim not found', 404);
         if (claim.status !== 'draft') throw new ApiError('Only draft claims can be submitted', 400);
 
-        const submittedClaim = await ClaimsDatabase.submitClaim(userId, claimId);
+        const submittedClaim = await ClaimsDatabase.submitClaim(userId, claimId, notes);
         if (!submittedClaim) throw new ApiError('Claim not found', 404);
 
         await ClaimsDatabase.createClaimAction(claimId, userId, 'submitted');
@@ -165,7 +169,7 @@ export const ClaimsService = {
                 throw new ApiError('Manager can only reject submitted claims', 400);
             }
 
-            const rejectedClaim = await ClaimsDatabase.rejectClaim(claimId, 'submitted', notes);
+            const rejectedClaim = await ClaimsDatabase.rejectClaim(claimId, 'submitted');
             if (!rejectedClaim) throw new ApiError('Claim not found', 404);
             await ClaimsDatabase.createClaimAction(claimId, userId, 'rejected', notes);
             return rejectedClaim;
@@ -176,7 +180,7 @@ export const ClaimsService = {
                 throw new ApiError('Finance can only reject approved claims', 400);
             }
 
-            const rejectedClaim = await ClaimsDatabase.rejectClaim(claimId, 'approved', notes);
+            const rejectedClaim = await ClaimsDatabase.rejectClaim(claimId, 'approved');
             if (!rejectedClaim) throw new ApiError('Claim not found', 404);
             await ClaimsDatabase.createClaimAction(claimId, userId, 'rejected', notes);
             return rejectedClaim;
