@@ -12,6 +12,7 @@ export const expenseClaims = pgTable(
         date: date("date").notNull(),
         notes: text("notes"),
         status: claimStatusEnum("status").notNull().default("draft"),
+        billUrl: text("bill_url"),
         deletedAt: timestamp("deleted_at", { withTimezone: true }),
         createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
         updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
