@@ -26,7 +26,7 @@ export const ClaimsService = {
         const limit = 10;
         const offset = (page - 1) * limit;
 
-        const allowedStatuses = roleVisibleStatuses[role];
+        const allowedStatuses: ClaimStatus[] = role === 'finance' ? ['approved'] : roleVisibleStatuses[role];
 
         if (status && !allowedStatuses.includes(status)) {
             throw new ApiError('No claims found', 404);
@@ -64,7 +64,11 @@ export const ClaimsService = {
             throw new ApiError('Claim not found', 404);
         }
 
-        return claim;
+        const history = await ClaimsDatabase.getClaimActionsByClaimId(claimId);
+        return {
+            ...claim,
+            history,
+        };
     },
     updateClaim: async (userId: string, claimId: string, amount?: number, category?: string, date?: Date, notes?: string, billFile?: Express.Multer.File) => {
         if (!userId) throw new ApiError('User ID is required', 400);
@@ -110,8 +114,6 @@ export const ClaimsService = {
         if (billFile && oldBillUrl) {
             await deleteClaimImageFromCloudinary(oldBillUrl);
         }
-
-        await ClaimsDatabase.createClaimAction(claimId, userId, 'edited');
         return updatedClaim;
     },
     submitClaim: async (userId: string, claimId: string) => {
@@ -128,8 +130,9 @@ export const ClaimsService = {
         await ClaimsDatabase.createClaimAction(claimId, userId, 'submitted');
         return submittedClaim;
     },
-    approveClaim: async (userId: string, claimId: string, note?: string) => {
+    approveClaim: async (userId: string, role: Role, claimId: string, note?: string) => {
         if (!userId) throw new ApiError('User ID is required', 400);
+        if (role !== 'manager') throw new ApiError('Only manager can approve claims', 403);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
 
         const claim = await ClaimsDatabase.getClaimById(claimId);
@@ -142,8 +145,9 @@ export const ClaimsService = {
         await ClaimsDatabase.createClaimAction(claimId, userId, 'approved', note);
         return approvedClaim;
     },
-    disburseClaim: async (userId: string, claimId: string, note?: string) => {
+    disburseClaim: async (userId: string, role: Role, claimId: string, note?: string) => {
         if (!userId) throw new ApiError('User ID is required', 400);
+        if (role !== 'finance') throw new ApiError('Only finance can disburse claims', 403);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
 
         const claim = await ClaimsDatabase.getClaimById(claimId);
@@ -207,7 +211,6 @@ export const ClaimsService = {
         if (claim.status === 'submitted') {
             const deletedClaim = await ClaimsDatabase.softDeleteClaim(userId, claimId);
             if (!deletedClaim) throw new ApiError('Claim not found', 404);
-            await ClaimsDatabase.createClaimAction(claimId, userId, 'deleted');
             return deletedClaim;
         }
 

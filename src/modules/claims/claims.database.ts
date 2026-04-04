@@ -2,6 +2,7 @@ import db from "@/config/drizzle.config.js";
 import { claimActions, expenseClaims } from "@/database/schema/index.js";
 import type { ClaimStatus } from "@/types/common.js";
 import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
+import { users } from "@/database/schema/user.schema.js";
 
 export const ClaimsDatabase = {
     getAllClaims: async (offset: number, pageSize: number) => {
@@ -101,6 +102,25 @@ export const ClaimsDatabase = {
         const [claim] = await db.select().from(expenseClaims).where(and(eq(expenseClaims.id, claimId), isNull(expenseClaims.deletedAt)));
         return claim ?? null;
     },
+    getClaimActionsByClaimId: async (claimId: string) => {
+        const actions = await db.select({
+            id: claimActions.id,
+            action: claimActions.action,
+            note: claimActions.note,
+            createdAt: claimActions.createdAt,
+            actor: {
+                id: users.id,
+                name: users.name,
+                role: users.role,
+            }
+        })
+            .from(claimActions)
+            .innerJoin(users, eq(claimActions.actorId, users.id))
+            .where(eq(claimActions.claimId, claimId))
+            .orderBy(desc(claimActions.createdAt));
+
+        return actions;
+    },
     approveClaim: async (claimId: string) => {
         const [approvedClaim] = await db.update(expenseClaims)
             .set({ status: 'approved', updatedAt: new Date() })
@@ -142,7 +162,7 @@ export const ClaimsDatabase = {
 
         return deletedClaim ?? null;
     },
-    createClaimAction: async (claimId: string, actorId: string, action: "created" | "edited" | "deleted" | "submitted" | "approved" | "disbursed" | "rejected", note?: string) => {
+    createClaimAction: async (claimId: string, actorId: string, action: "created" | "submitted" | "approved" | "disbursed" | "rejected", note?: string) => {
         await db.insert(claimActions).values({
             claimId,
             actorId,

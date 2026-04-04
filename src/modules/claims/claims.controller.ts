@@ -35,13 +35,13 @@ export const handleSubmitClaim = async (req: Request, res: Response) => {
 export const handleApproveClaim = async (req: Request, res: Response) => {
     const claimId = req.params.id as string;
     const { note } = reviewClaimSchema.parse(req.body ?? {});
-    const approvedClaim = await ClaimsService.approveClaim(req.user.id, claimId, note);
+    const approvedClaim = await ClaimsService.approveClaim(req.user.id, req.user.role, claimId, note);
     sendSuccess(res, 200, "Claim approved successfully", approvedClaim);
 }
 export const handleDisburseClaim = async (req: Request, res: Response) => {
     const claimId = req.params.id as string;
     const { note } = reviewClaimSchema.parse(req.body ?? {});
-    const disbursedClaim = await ClaimsService.disburseClaim(req.user.id, claimId, note);
+    const disbursedClaim = await ClaimsService.disburseClaim(req.user.id, req.user.role, claimId, note);
     sendSuccess(res, 200, "Claim disbursed successfully", disbursedClaim);
 }
 export const handleRejectClaim = async (req: Request, res: Response) => {
