@@ -5,6 +5,7 @@ import { sendSuccess } from './utils/constants/response.js';
 import authRoutes from "./modules/auth/auth.route.js"
 import userRoutes from "./modules/users/user.route.js"
 import claimsRoute from "./modules/claims/claims.route.js"
+import dashboardRoute from "./modules/dashboard/dashboard.route.js"
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 
 
@@ -26,9 +27,8 @@ app.get('/health', (req, res) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/claims', claimsRoute)
-
-
+app.use('/api/v1/claims', claimsRoute);
+app.use('/api/v1/dashboard', dashboardRoute);
 
 app.use(errorHandler);
 app.use(notFound);
