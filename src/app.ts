@@ -2,18 +2,18 @@ import express from 'express';
 import cors from 'cors';
 import { corsOptions } from './constants.js';
 import { sendSuccess } from './utils/constants/response.js';
+import helmet from 'helmet';
 import authRoutes from "./modules/auth/auth.route.js"
 import userRoutes from "./modules/users/user.route.js"
 import claimsRoute from "./modules/claims/claims.route.js"
 import dashboardRoute from "./modules/dashboard/dashboard.route.js"
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 
-
 const app = express();
-app.disable('x-powered-by');
 
+app.use(helmet());
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true }));
 
 //Health Routes
