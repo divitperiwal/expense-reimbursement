@@ -13,8 +13,10 @@ export const updateClaimSchema = z.object({
     date: z.coerce.date().optional(),
     notes: z.string().trim().max(1000).optional()
 })
-export const submitClaimSchema = z.object({
-    notes: z.string().trim().max(1000).optional()
+export const submitClaimSchema = z.object({})
+
+export const reviewClaimSchema = z.object({
+    note: z.string().trim().max(1000).optional()
 })
 export const getClaimSchema = z.object({
     page: z.coerce.number().int().positive().optional(),
@@ -22,5 +24,5 @@ export const getClaimSchema = z.object({
 })
 
 export const rejectClaimSchema = z.object({
-    notes: z.string().trim().min(1).max(1000)
+    note: z.string().trim().min(1).max(1000)
 })

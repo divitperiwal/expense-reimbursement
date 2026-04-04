@@ -114,7 +114,7 @@ export const ClaimsService = {
         await ClaimsDatabase.createClaimAction(claimId, userId, 'edited');
         return updatedClaim;
     },
-    submitClaim: async (userId: string, claimId: string, notes?: string) => {
+    submitClaim: async (userId: string, claimId: string) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
 
@@ -122,13 +122,13 @@ export const ClaimsService = {
         if (!claim) throw new ApiError('Claim not found', 404);
         if (claim.status !== 'draft') throw new ApiError('Only draft claims can be submitted', 400);
 
-        const submittedClaim = await ClaimsDatabase.submitClaim(userId, claimId, notes);
+        const submittedClaim = await ClaimsDatabase.submitClaim(userId, claimId);
         if (!submittedClaim) throw new ApiError('Claim not found', 404);
 
         await ClaimsDatabase.createClaimAction(claimId, userId, 'submitted');
         return submittedClaim;
     },
-    approveClaim: async (userId: string, claimId: string) => {
+    approveClaim: async (userId: string, claimId: string, note?: string) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
 
@@ -139,10 +139,10 @@ export const ClaimsService = {
         const approvedClaim = await ClaimsDatabase.approveClaim(claimId);
         if (!approvedClaim) throw new ApiError('Claim not found', 404);
 
-        await ClaimsDatabase.createClaimAction(claimId, userId, 'approved');
+        await ClaimsDatabase.createClaimAction(claimId, userId, 'approved', note);
         return approvedClaim;
     },
-    disburseClaim: async (userId: string, claimId: string) => {
+    disburseClaim: async (userId: string, claimId: string, note?: string) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
 
@@ -153,13 +153,13 @@ export const ClaimsService = {
         const disbursedClaim = await ClaimsDatabase.disburseClaim(claimId);
         if (!disbursedClaim) throw new ApiError('Claim not found', 404);
 
-        await ClaimsDatabase.createClaimAction(claimId, userId, 'disbursed');
+        await ClaimsDatabase.createClaimAction(claimId, userId, 'disbursed', note);
         return disbursedClaim;
     },
-    rejectClaim: async (userId: string, role: Role, claimId: string, notes: string) => {
+    rejectClaim: async (userId: string, role: Role, claimId: string, note: string) => {
         if (!userId) throw new ApiError('User ID is required', 400);
         if (!claimId) throw new ApiError('Claim ID is required', 400);
-        if (!notes?.trim()) throw new ApiError('Notes are required', 400);
+        if (!note?.trim()) throw new ApiError('Note is required', 400);
 
         const claim = await ClaimsDatabase.getClaimById(claimId);
         if (!claim) throw new ApiError('Claim not found', 404);
@@ -171,7 +171,7 @@ export const ClaimsService = {
 
             const rejectedClaim = await ClaimsDatabase.rejectClaim(claimId, 'submitted');
             if (!rejectedClaim) throw new ApiError('Claim not found', 404);
-            await ClaimsDatabase.createClaimAction(claimId, userId, 'rejected', notes);
+            await ClaimsDatabase.createClaimAction(claimId, userId, 'rejected', note);
             return rejectedClaim;
         }
 
@@ -182,7 +182,7 @@ export const ClaimsService = {
 
             const rejectedClaim = await ClaimsDatabase.rejectClaim(claimId, 'approved');
             if (!rejectedClaim) throw new ApiError('Claim not found', 404);
-            await ClaimsDatabase.createClaimAction(claimId, userId, 'rejected', notes);
+            await ClaimsDatabase.createClaimAction(claimId, userId, 'rejected', note);
             return rejectedClaim;
         }
 

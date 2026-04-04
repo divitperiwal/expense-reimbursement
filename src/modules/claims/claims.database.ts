@@ -70,12 +70,11 @@ export const ClaimsDatabase = {
 
         return updatedClaim ?? null;
     },
-    submitClaim: async (userId: string, claimId: string, notes?: string) => {
+    submitClaim: async (userId: string, claimId: string) => {
         const [submittedClaim] = await db.update(expenseClaims)
             .set({
                 status: 'submitted',
-                updatedAt: new Date(),
-                ...(notes !== undefined ? { notes } : {})
+                updatedAt: new Date()
             })
             .where(and(eq(expenseClaims.id, claimId), eq(expenseClaims.employeeId, userId), isNull(expenseClaims.deletedAt)))
             .returning({ id: expenseClaims.id });

@@ -1,7 +1,7 @@
 import { sendSuccess } from "@/utils/constants/response.js"
 import type { Request, Response } from "express"
 import { ClaimsService } from "./claims.service.js"
-import { createClaimSchema, getClaimSchema, rejectClaimSchema, submitClaimSchema, updateClaimSchema } from "@/types/validation/claim.validation.js"
+import { createClaimSchema, getClaimSchema, rejectClaimSchema, reviewClaimSchema, submitClaimSchema, updateClaimSchema } from "@/types/validation/claim.validation.js"
 
 export const handleGetSelfClaim = async (req: Request, res: Response) => {
     const { page, status } = getClaimSchema.parse(req.query);
@@ -28,24 +28,26 @@ export const handleUpdateClaim = async (req: Request, res: Response) => {
 }
 export const handleSubmitClaim = async (req: Request, res: Response) => {
     const claimId = req.params.id as string;
-    const { notes } = submitClaimSchema.parse(req.body);
-    const submittedClaim = await ClaimsService.submitClaim(req.user.id, claimId, notes);
+    submitClaimSchema.parse(req.body ?? {});
+    const submittedClaim = await ClaimsService.submitClaim(req.user.id, claimId);
     sendSuccess(res, 200, "Claim submitted successfully", submittedClaim);
 }
 export const handleApproveClaim = async (req: Request, res: Response) => {
     const claimId = req.params.id as string;
-    const approvedClaim = await ClaimsService.approveClaim(req.user.id, claimId);
+    const { note } = reviewClaimSchema.parse(req.body ?? {});
+    const approvedClaim = await ClaimsService.approveClaim(req.user.id, claimId, note);
     sendSuccess(res, 200, "Claim approved successfully", approvedClaim);
 }
 export const handleDisburseClaim = async (req: Request, res: Response) => {
     const claimId = req.params.id as string;
-    const disbursedClaim = await ClaimsService.disburseClaim(req.user.id, claimId);
+    const { note } = reviewClaimSchema.parse(req.body ?? {});
+    const disbursedClaim = await ClaimsService.disburseClaim(req.user.id, claimId, note);
     sendSuccess(res, 200, "Claim disbursed successfully", disbursedClaim);
 }
 export const handleRejectClaim = async (req: Request, res: Response) => {
     const claimId = req.params.id as string;
-    const { notes } = rejectClaimSchema.parse(req.body);
-    const rejectedClaim = await ClaimsService.rejectClaim(req.user.id, req.user.role, claimId, notes);
+    const { note } = rejectClaimSchema.parse(req.body ?? {});
+    const rejectedClaim = await ClaimsService.rejectClaim(req.user.id, req.user.role, claimId, note);
     sendSuccess(res, 200, "Claim rejected successfully", rejectedClaim);
 }
 export const handleDeleteClaim = async (req: Request, res: Response) => {
