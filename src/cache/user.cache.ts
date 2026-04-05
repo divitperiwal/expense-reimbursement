@@ -7,7 +7,7 @@ export const UserCache = {
         return redis.get(`user:me:${userId}`);
     },
     saveUser: async (userId: string, user: string) => {
-        await redis.set(`user:me:${userId}`, user, 'EX', USER_ME_TTL_SECONDS);
+        await redis.setex(`user:me:${userId}`, USER_ME_TTL_SECONDS, user);
     },
     clearUser: async (userId: string) => {
         await redis.del(`user:me:${userId}`);

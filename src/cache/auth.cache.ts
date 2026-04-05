@@ -4,7 +4,7 @@ const SESSION_TTL_SECONDS = 12 * 60 * 60;
 
 export const AuthCache = {
 	saveSession: async (userId: string, token: string) => {
-		await redis.set(`session:${userId}`, token, 'EX', SESSION_TTL_SECONDS);
+		await redis.setex(`session:${userId}`, SESSION_TTL_SECONDS, token);
 	},
 	getSessionToken: async (userId: string) => {
 		return redis.get(`session:${userId}`);

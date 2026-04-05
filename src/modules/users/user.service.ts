@@ -7,7 +7,7 @@ export const UserService = {
     getUser: async (userId: string) => {
         // if (requester.role !== 'admin' && requester.id !== userId) throw new ApiError('Forbidden', 403);
         const cached = await UserCache.getUser(userId);
-        if (cached) return JSON.parse(cached);
+        if (cached) return cached;
 
         const user = await UserDatabase.getUserById(userId);
         if (!user) throw new ApiError('User not found', 404);
