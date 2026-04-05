@@ -2,8 +2,7 @@ import { ApiError } from "@/utils/constants/api-error.js"
 import { AuthDatabase } from "./auth.database.js";
 import { comparePassword, hashPassword } from "@/utils/helper/hashing.js";
 import { signAccessToken } from "@/utils/helper/jwt.js";
-
-//Invalidating JWT tokens left using redis
+import { AuthCache } from "@/cache/auth.cache.js";
 
 export const AuthService = {
     register: async (name: string, email: string, password: string) => {
@@ -20,6 +19,7 @@ export const AuthService = {
         //Generate JWT
         const userObj = { id: user.id, name: user.name, role: user.role };
         const accessToken = signAccessToken(userObj);
+        await AuthCache.saveSession(user.id, accessToken);
 
         return { userId: user.id, accessToken };
 
@@ -37,11 +37,14 @@ export const AuthService = {
         const userObj = { id: user.id, name: user.name, role: user.role };
         //Create JWT token and return it to the user
         const accessToken = signAccessToken(userObj);
+        await AuthCache.saveSession(user.id, accessToken);
 
         return { userId: user.id, accessToken };
 
     },
-    logout: async (jwt: string) => {
-
+    logout: async (userId: string) => {
+        if (!userId) throw new ApiError("User ID is required", 400);
+        await AuthCache.clearSession(userId);
+        return;
     }
 }

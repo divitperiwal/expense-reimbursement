@@ -13,3 +13,8 @@ export const handleLogin = asyncHandler(async (req, res) => {
     const tokens = await AuthService.login(email, password);
     sendSuccess(res, 200, "User logged in successfully", tokens)
 })
+
+export const handleLogout = asyncHandler(async (req, res) => {
+    await AuthService.logout(req.user.id);
+    sendSuccess(res, 200, "User logged out successfully");
+})
