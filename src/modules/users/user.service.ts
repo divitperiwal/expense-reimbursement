@@ -1,12 +1,18 @@
 import type { Role, User } from "@/types/common.js";
 import { ApiError } from "@/utils/constants/api-error.js";
 import { UserDatabase } from "./user.database.js";
+import { UserCache } from "@/cache/user.cache.js";
 
 export const UserService = {
     getUser: async (userId: string) => {
         // if (requester.role !== 'admin' && requester.id !== userId) throw new ApiError('Forbidden', 403);
+        const cached = await UserCache.getUser(userId);
+        if (cached) return JSON.parse(cached);
+
         const user = await UserDatabase.getUserById(userId);
         if (!user) throw new ApiError('User not found', 404);
+
+        UserCache.saveUser(userId, JSON.stringify(user))
         return user;
     },
 
@@ -22,6 +28,7 @@ export const UserService = {
         if (!user) throw new ApiError('User not found', 404);
 
         await UserDatabase.updateUserRole(userId, role);
+        UserCache.clearUser(userId)
         return;
     },
     updateUserStatus: async (userId: string, status: 'active' | 'inactive') => {
@@ -29,6 +36,7 @@ export const UserService = {
         if (!user) throw new ApiError('User not found', 404);
 
         await UserDatabase.updateUserStatus(userId, status);
+        UserCache.clearUser(userId)
         return;
     }
 }
