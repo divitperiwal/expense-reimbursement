@@ -1,7 +1,7 @@
 export const corsOptions = {
-    origin: process.env.CORS_ORIGIN || 'locahost:3000',
+    origin: process.env.CORS_ORIGIN || 'localhost:3000',
     credentials: true,
     optionsSuccessStatus: 200,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }
