@@ -7,6 +7,7 @@ import authRoutes from "./modules/auth/auth.route.js"
 import userRoutes from "./modules/users/user.route.js"
 import claimsRoute from "./modules/claims/claims.route.js"
 import dashboardRoute from "./modules/dashboard/dashboard.route.js"
+import { apiRateLimiter } from './middlewares/rate-limit.middleware.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 
 const app = express();
@@ -24,6 +25,8 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
     sendSuccess(res, 200, "Server is healthy", { timestamp: Date.now() });
 });
+
+app.use('/api/', apiRateLimiter);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
