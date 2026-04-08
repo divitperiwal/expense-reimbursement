@@ -7,6 +7,7 @@ import authRoutes from "./modules/auth/auth.route.js"
 import userRoutes from "./modules/users/user.route.js"
 import claimsRoute from "./modules/claims/claims.route.js"
 import dashboardRoute from "./modules/dashboard/dashboard.route.js"
+import { mountDocs } from './docs/swagger-docs.js';
 import { apiRateLimiter } from './middlewares/rate-limit.middleware.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 
@@ -16,6 +17,8 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true }));
+
+mountDocs(app);
 
 //Health Routes
 app.get('/', (req, res) => {
