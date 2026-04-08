@@ -1,0 +1,2200 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Expense Reimbursement API",
+        "version": "1.0.0",
+        "description": "Internal API for the expense reimbursement workflow. It supports authentication, employee claim submission, manager approval, finance disbursement, and admin user management.\n\nThis documentation is intended for frontend developers, QA, and integrators working with the reimbursement platform.",
+        "contact": {
+            "name": "Expense Platform Team"
+        }
+    },
+  "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local development server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "System",
+            "description": "Service availability and runtime status"
+        },
+        {
+            "name": "Auth",
+            "description": "Login, registration, and session lifecycle"
+        },
+        {
+            "name": "Users",
+            "description": "Current user profile and admin-level user operations"
+        },
+        {
+            "name": "Claims",
+            "description": "Claim creation, updates, submission, review, and disbursement"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Role-scoped reporting and operational metrics"
+        }
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "tags": [
+                    "System"
+                ],
+                "summary": "API welcome message",
+                "operationId": "getRoot",
+                "responses": {
+                    "200": {
+                        "description": "API is reachable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "welcome": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Welcome to the API"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "System"
+                ],
+                "summary": "Health check",
+                "operationId": "getHealth",
+                "responses": {
+                    "200": {
+                        "description": "Server is healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "health": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Server is healthy",
+                                            "data": {
+                                                "timestamp": 1712000000000
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register a new user",
+                "operationId": "registerUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterRequest"
+                            },
+                            "examples": {
+                                "default": {
+                                    "value": {
+                                        "name": "John Doe",
+                                        "email": "john@example.com",
+                                        "password": "securePassword123"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "registered": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 201,
+                                            "message": "User registered successfully",
+                                            "data": {
+                                                "userId": "550e8400-e29b-41d4-a716-446655440000",
+                                                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation or duplicate user error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login and create a session",
+                "operationId": "loginUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            },
+                            "examples": {
+                                "default": {
+                                    "value": {
+                                        "email": "john@example.com",
+                                        "password": "securePassword123"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User logged in successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "loggedIn": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "User logged in successfully",
+                                            "data": {
+                                                "userId": "550e8400-e29b-41d4-a716-446655440000",
+                                                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limited",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout the current session",
+                "operationId": "logoutUser",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User logged out successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "loggedOut": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "User logged out successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/me": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get the authenticated user's profile",
+                "operationId": "getCurrentUser",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "user": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "User retrieved successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                "name": "John Doe",
+                                                "email": "john@example.com",
+                                                "role": "employee",
+                                                "status": "active",
+                                                "createdAt": "2026-04-08T10:00:00.000Z"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "List all users",
+                "operationId": "getUsers",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PageQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "users": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Users retrieved successfully",
+                                            "data": {
+                                                "users": [
+                                                    {
+                                                        "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                        "name": "John Doe",
+                                                        "email": "john@example.com",
+                                                        "role": "employee",
+                                                        "status": "active",
+                                                        "createdAt": "2026-04-08T10:00:00.000Z"
+                                                    }
+                                                ],
+                                                "meta": {
+                                                    "currentPage": 1,
+                                                    "totalPages": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No users found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get a user by ID",
+                "operationId": "getUserById",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "user": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "User retrieved successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                "name": "John Doe",
+                                                "email": "john@example.com",
+                                                "role": "employee",
+                                                "status": "active",
+                                                "createdAt": "2026-04-08T10:00:00.000Z"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}/role": {
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's role",
+                "operationId": "updateUserRole",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateRoleRequest"
+                            },
+                            "examples": {
+                                "default": {
+                                    "value": {
+                                        "role": "manager"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User role updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "updated": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "User role updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's status",
+                "operationId": "updateUserStatus",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateStatusRequest"
+                            },
+                            "examples": {
+                                "default": {
+                                    "value": {
+                                        "status": "inactive"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User status updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "updated": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "User status updated successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claims/me": {
+            "get": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "List the authenticated employee's claims",
+                "operationId": "getMyClaims",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PageQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ClaimStatusQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Claims retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "claims": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claims retrieved successfully",
+                                            "data": {
+                                                "claims": [
+                                                    {
+                                                        "id": "550e8400-e29b-41d4-a716-446655440010",
+                                                        "employeeId": "550e8400-e29b-41d4-a716-446655440001",
+                                                        "amount": "125.50",
+                                                        "category": "Travel",
+                                                        "date": "2026-04-07",
+                                                        "notes": "Client meeting taxi fare",
+                                                        "status": "submitted",
+                                                        "billUrl": "https://res.cloudinary.com/demo/image/upload/v1/bill.jpg",
+                                                        "deletedAt": null,
+                                                        "createdAt": "2026-04-08T10:10:00.000Z",
+                                                        "updatedAt": "2026-04-08T10:12:00.000Z"
+                                                    }
+                                                ],
+                                                "meta": {
+                                                    "currentPage": 1,
+                                                    "totalPages": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No claims found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claims": {
+            "get": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "List claims visible to manager, finance, or admin",
+                "operationId": "getClaims",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PageQuery"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ClaimStatusQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Claims retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "claims": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claims retrieved successfully",
+                                            "data": {
+                                                "claims": [
+                                                    {
+                                                        "id": "550e8400-e29b-41d4-a716-446655440010",
+                                                        "employeeId": "550e8400-e29b-41d4-a716-446655440001",
+                                                        "amount": "125.50",
+                                                        "category": "Travel",
+                                                        "date": "2026-04-07",
+                                                        "notes": "Client meeting taxi fare",
+                                                        "status": "submitted",
+                                                        "billUrl": "https://res.cloudinary.com/demo/image/upload/v1/bill.jpg",
+                                                        "deletedAt": null,
+                                                        "createdAt": "2026-04-08T10:10:00.000Z",
+                                                        "updatedAt": "2026-04-08T10:12:00.000Z"
+                                                    }
+                                                ],
+                                                "meta": {
+                                                    "currentPage": 1,
+                                                    "totalPages": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No claims found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Create a draft expense claim",
+                "operationId": "createClaim",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateClaimRequest"
+                            },
+                            "encoding": {
+                                "bill": {
+                                    "contentType": "image/jpeg, image/png, image/webp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Claim created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "created": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 201,
+                                            "message": "Claim created successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440010"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation or business rule error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claims/{id}": {
+            "get": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Get a claim with its action history",
+                "operationId": "getClaimById",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Claim retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "claim": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claim retrieved successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440010",
+                                                "employeeId": "550e8400-e29b-41d4-a716-446655440001",
+                                                "amount": "125.50",
+                                                "category": "Travel",
+                                                "date": "2026-04-07",
+                                                "notes": "Client meeting taxi fare",
+                                                "status": "submitted",
+                                                "billUrl": "https://res.cloudinary.com/demo/image/upload/v1/bill.jpg",
+                                                "deletedAt": null,
+                                                "createdAt": "2026-04-08T10:10:00.000Z",
+                                                "updatedAt": "2026-04-08T10:12:00.000Z",
+                                                "history": [
+                                                    {
+                                                        "id": "550e8400-e29b-41d4-a716-446655440011",
+                                                        "action": "created",
+                                                        "note": null,
+                                                        "createdAt": "2026-04-08T10:10:00.000Z",
+                                                        "actor": {
+                                                            "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                            "name": "John Doe",
+                                                            "role": "employee"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Update a draft claim",
+                "operationId": "updateClaim",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateClaimRequest"
+                            },
+                            "encoding": {
+                                "bill": {
+                                    "contentType": "image/jpeg, image/png, image/webp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Claim updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "updated": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claim updated successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440010"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation or business rule error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Delete a claim owned by the employee",
+                "operationId": "deleteClaim",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Claim deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "deleted": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claim deleted successfully"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Business rule error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claims/{id}/submit": {
+            "patch": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Submit a draft claim",
+                "operationId": "submitClaim",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmptyObject"
+                            },
+                            "examples": {
+                                "empty": {
+                                    "value": {}
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Claim submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "submitted": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claim submitted successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440010"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Business rule error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claims/{id}/approve": {
+            "patch": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Approve a submitted claim",
+                "operationId": "approveClaim",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReviewClaimRequest"
+                            },
+                            "examples": {
+                                "default": {
+                                    "value": {
+                                        "note": "Approved after manager review"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Claim approved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "approved": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claim approved successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440010"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Business rule error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claims/{id}/disburse": {
+            "patch": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Disburse an approved claim",
+                "operationId": "disburseClaim",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReviewClaimRequest"
+                            },
+                            "examples": {
+                                "default": {
+                                    "value": {
+                                        "note": "Disbursed to employee payroll"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Claim disbursed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "disbursed": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claim disbursed successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440010"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Business rule error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/claims/{id}/reject": {
+            "patch": {
+                "tags": [
+                    "Claims"
+                ],
+                "summary": "Reject a claim",
+                "operationId": "rejectClaim",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/IdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RejectClaimRequest"
+                            },
+                            "examples": {
+                                "default": {
+                                    "value": {
+                                        "note": "Receipt is missing"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Claim rejected successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "rejected": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Claim rejected successfully",
+                                            "data": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440010"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Business rule error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/summary": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get summary metrics",
+                "operationId": "getDashboardSummary",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Summary retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "summary": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Summary retrieved successfully",
+                                            "data": {
+                                                "totalClaims": 12,
+                                                "pendingApproval": 2,
+                                                "approvedAmount": "1450.00",
+                                                "disbursedAmount": "980.00",
+                                                "rejectedCount": 1,
+                                                "totalAmount": "2430.00"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/categories": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get totals grouped by category",
+                "operationId": "getDashboardCategories",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categories retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "categories": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Categories retrieved successfully",
+                                            "data": [
+                                                {
+                                                    "category": "Travel",
+                                                    "totalAmount": "430.00",
+                                                    "claimCount": 4
+                                                },
+                                                {
+                                                    "category": "Meals",
+                                                    "totalAmount": "120.00",
+                                                    "claimCount": 2
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/trends": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get six-month trend metrics",
+                "operationId": "getDashboardTrends",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Trends retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "trends": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Trends retrieved successfully",
+                                            "data": [
+                                                {
+                                                    "month": "2026-01",
+                                                    "submitted": 1,
+                                                    "approved": 1,
+                                                    "disbursed": 0,
+                                                    "totalAmount": "120.00"
+                                                },
+                                                {
+                                                    "month": "2026-02",
+                                                    "submitted": 2,
+                                                    "approved": 1,
+                                                    "disbursed": 1,
+                                                    "totalAmount": "350.00"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/pending": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get pending claims for managers, finance, and admin",
+                "operationId": "getDashboardPending",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PageQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pending claims retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiSuccessResponse"
+                                },
+                                "examples": {
+                                    "pending": {
+                                        "value": {
+                                            "success": true,
+                                            "statusCode": 200,
+                                            "message": "Pending claims retrieved successfully",
+                                            "data": {
+                                                "claims": [
+                                                    {
+                                                        "id": "550e8400-e29b-41d4-a716-446655440010",
+                                                        "employeeName": "John Doe",
+                                                        "amount": "125.50",
+                                                        "category": "Travel",
+                                                        "status": "submitted",
+                                                        "createdAt": "2026-04-08T10:10:00.000Z"
+                                                    }
+                                                ],
+                                                "meta": {
+                                                    "currentPage": 1,
+                                                    "totalPages": 1,
+                                                    "total": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        },
+        "parameters": {
+            "IdParam": {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "description": "Resource identifier",
+                "schema": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            },
+            "PageQuery": {
+                "name": "page",
+                "in": "query",
+                "required": false,
+                "description": "Page number for paginated endpoints",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "ClaimStatusQuery": {
+                "name": "status",
+                "in": "query",
+                "required": false,
+                "description": "Optional claim status filter",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "submitted",
+                        "approved",
+                        "rejected",
+                        "disbursed"
+                    ]
+                }
+            }
+        },
+        "schemas": {
+            "ApiSuccessResponse": {
+                "type": "object",
+                "required": [
+                    "success",
+                    "statusCode",
+                    "message"
+                ],
+                "properties": {
+                    "success": {
+                        "const": true
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 599
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "Endpoint-specific response payload"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "ApiErrorResponse": {
+                "type": "object",
+                "required": [
+                    "success",
+                    "statusCode",
+                    "message"
+                ],
+                "properties": {
+                    "success": {
+                        "const": false
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 599
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "description": "Validation or structured error details"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "EmptyObject": {
+                "type": "object",
+                "additionalProperties": false
+            },
+            "LoginRequest": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6
+                    }
+                },
+                "additionalProperties": false
+            },
+            "RegisterRequest": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 2
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 6
+                    }
+                },
+                "additionalProperties": false
+            },
+            "UpdateRoleRequest": {
+                "type": "object",
+                "required": [
+                    "role"
+                ],
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "employee",
+                            "manager",
+                            "finance",
+                            "admin"
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            },
+            "UpdateStatusRequest": {
+                "type": "object",
+                "required": [
+                    "status"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive"
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            },
+            "CreateClaimRequest": {
+                "type": "object",
+                "required": [
+                    "amount",
+                    "category",
+                    "date"
+                ],
+                "properties": {
+                    "amount": {
+                        "type": "number",
+                        "minimum": 1
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 1000
+                    },
+                    "bill": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "Optional bill image upload. JPEG, PNG, or WEBP up to 5 MB."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "UpdateClaimRequest": {
+                "type": "object",
+                "properties": {
+                    "amount": {
+                        "type": "number",
+                        "minimum": 1
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 1000
+                    },
+                    "bill": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "Optional bill image upload. JPEG, PNG, or WEBP up to 5 MB."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "ReviewClaimRequest": {
+                "type": "object",
+                "properties": {
+                    "note": {
+                        "type": "string",
+                        "maxLength": 1000
+                    }
+                },
+                "additionalProperties": false
+            },
+            "RejectClaimRequest": {
+                "type": "object",
+                "required": [
+                    "note"
+                ],
+                "properties": {
+                    "note": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    }
+}
